@@ -25,29 +25,7 @@ void add_history(char* unused) {}
 #include <editline/readline.h>
 #endif
 
-/**
- * Abstract Data Type for Expression
- * 
- */
-
-/* Define Lispy Value struct */
-typedef struct {
-  int type;
-  long num;
-  /* Error and Symbol are Strings */
-  char* err;
-  char* sym;
-  /* count and cell as pointer to recursively-defined lval pointers, interpreted as lists */
-  /* the use of pointers is to allow variable length expressions */
-  /* cell resembles cons cell */
-  // TODO warning: incompatible pointer types assigning to 'struct lval *' from 'lval *' [-Wincompatible-pointer-types]
-  // TODO note passing argument to parameter 'v' here (lval_del, lval_print)
-  int count;
-  struct lval** cell;
-} lval;
-
-/* Enum of type constants */
-enum { LVAL_NUM, LVAL_SYM, LVAL_SEXPR, LVAL_ERR };
+#include "s-expression.h"
 
 /**
  * Constructors and Destructor 
@@ -213,7 +191,8 @@ lval* lval_expr_sexpr(lval* v) {
 
   /* Error checking */
   for (int i = 0; i < v->count; i++) {
-    if (v->cell[i]->type == LVAL_ERR) { return lval_take(v, i); }
+    lval* c = v->cell[i];
+    if (c->type == LVAL_ERR) { return lval_take(v, i); }
   }
 
   /* Empty Expression */
@@ -273,7 +252,8 @@ lval* builtin_op(lval* a, char* op) {
 
   /* Ensure all arguments are numbers */
   for (int i = 0; i < a->count; i++) {
-    if (a->cell[i]->type != LVAL_NUM) {
+    lval* c = a->cell[i];
+    if (c->type != LVAL_NUM) {
       /* Abort evaluation by shortcircuiting to deallocating memory */
       lval_del(a);
       return lval_err("Cannot operate on non-number!");
