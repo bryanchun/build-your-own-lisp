@@ -20,4 +20,4 @@ typedef struct {
 } lval;
 
 /* Enum of type constants */
-enum { LVAL_NUM, LVAL_SYM, LVAL_SEXPR, LVAL_ERR };
+enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR };
