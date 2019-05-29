@@ -21,7 +21,7 @@ typedef struct lenv lenv;
 /* Lispy Value */
 /* Enum of type constants */
 enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, 
-       LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR };
+       LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR, LVAL_TERM };
 
 /* Error String Buffer Maximum Size */
 const int ERROR_BUFFER_SIZE = 512;
@@ -147,3 +147,5 @@ lval* builtin_len(lenv* e, lval* a);
 lval* builtin_init(lenv* e, lval* a);
 
 lval* builtin_def(lenv* e, lval* a);
+lval* builtin_exit(lenv* e, lval* a);
+lval* builtin_env(lenv* e, lval* a);
