@@ -26,6 +26,6 @@ To run the interactive console, pull this repository and then in your terminal, 
   - [x] Arithmetic (`+`, `-`, `*`, `/`, `%`, `^`, `max`, `min`)
   - [x] List-processing (`list`, `head`, `tail`, `eval`, `join`, `cons`, `len`, `init`)
   - [x] Definition (`def`) for numerical variables so far, supporting tuple assignment (e.g. `def {a b c} 1 2 3`)
-  - [x] Exit (`exit`)
-  - [x] All defined variables
+  - [ ] Exit (`exit ()`)
+  - [ ] All defined variables (`env ()`)
 - [x] Rich error reports and error-as-expression
