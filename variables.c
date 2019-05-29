@@ -347,7 +347,7 @@ lval* lval_expr_sexpr(lenv* e, lval* v) {
   if (v->count == 0)  { return v; }
   /* Single Expression */
   if (v->count == 1 
-      /* Unitary function support? */
+      /* 0-ary function support? */
       && v->cell[0]->type != LVAL_FUN
       )
         { return lval_take(v, 0); }
