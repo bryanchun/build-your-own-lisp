@@ -106,6 +106,12 @@ lval* lval_fun(lbuiltin func) {
   return v;
 }
 
+lval* lval_term(void) {
+  lval* v = malloc(sizeof(lval));
+  v->type = LVAL_TERM;
+  return v;
+}
+
 char* ltype_name(int t) {
   /* Convert Enum LVAL types to proper strings */
   switch (t) {
@@ -227,6 +233,8 @@ void lenv_add_builtins(lenv* e) {
   lenv_add_builtin(e, "init", builtin_init);
 
   lenv_add_builtin(e, "def", builtin_def);
+  lenv_add_builtin(e, "exit", builtin_exit);
+  lenv_add_builtin(e, "env", builtin_env);
 }
 
 /**
@@ -300,12 +308,13 @@ void lval_expr_print(lval* v, char open, char close) {
 /* Print an lval value */
 void lval_print(lval* v) {
   switch (v->type) {
-    case LVAL_NUM:    printf("%li", v->num);         break;
-    case LVAL_ERR:    printf("Error: %s", v->err);   break;
-    case LVAL_SYM:    printf("%s", v->sym);          break;
-    case LVAL_SEXPR:  lval_expr_print(v, '(', ')');  break;
-    case LVAL_QEXPR:  lval_expr_print(v, '{', '}');  break;
-    case LVAL_FUN:    printf("<function>");          break;
+    case LVAL_NUM:    printf("%li", v->num);            break;
+    case LVAL_ERR:    printf("Error: %s", v->err);      break;
+    case LVAL_SYM:    printf("%s", v->sym);             break;
+    case LVAL_SEXPR:  lval_expr_print(v, '(', ')');     break;
+    case LVAL_QEXPR:  lval_expr_print(v, '{', '}');     break;
+    case LVAL_FUN:    printf("<function>");             break;
+    case LVAL_TERM:   printf("<termination>");          break;
   }
 }
 
@@ -331,14 +340,17 @@ lval* lval_expr_sexpr(lenv* e, lval* v) {
 
   /* Error checking */
   for (int i = 0; i < v->count; i++) {
-    lval* c = v->cell[i];
-    if (c->type == LVAL_ERR) { return lval_take(v, i); }
+    if (v->cell[i]->type == LVAL_ERR) { return lval_take(v, i); }
   }
 
   /* Empty Expression */
   if (v->count == 0)  { return v; }
   /* Single Expression */
-  if (v->count == 1)  { return lval_take(v, 0); }
+  if (v->count == 1 
+      /* Unitary function support? */
+      && v->cell[0]->type != LVAL_FUN
+      )
+        { return lval_take(v, 0); }
 
   /* Guard that first element is a Function */
   lval* f = lval_pop(v, 0);
@@ -364,7 +376,7 @@ lval* lval_eval(lenv* e, lval* v) {
     lval_del(v);
     return x;
   }
-  /* Otherwise all other subtypes (Number, Error) are unchanged, return identity */
+  /* Otherwise all other subtypes (Number, Error, Function) are unchanged, return identity */
   return v;
 }
 
@@ -558,7 +570,7 @@ lval* builtin_head(lenv* e, lval* a) {
   /* Guards required conditions and return error if contradicts */
   LASSERT(a, a->count == 1, "Function 'head' passed too many arguments! Got %i, Expected %i.", a->count, 1);
   LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'head' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
-  LASSERT(a, a->cell[0]->count != 0, "Function 'head' passed empty Qexpr!");    // unsafe 'head'
+  LASSERT(a, a->cell[0]->count != 0, "Function 'head' passed empty Qexpr! Got %i, Expected %i.", 0, 1);    // unsafe 'head'
 
   /* Extract singleton/head */
   lval* v = lval_take(a, 0);
@@ -573,7 +585,7 @@ lval* builtin_tail(lenv* e, lval* a) {
   /* Guards required conditions and return error if contradicts */
   LASSERT(a, a->count == 1, "Function 'tail' passed too many arguments! Got %i, Expected %i.", a->count, 1);
   LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'tail' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
-  LASSERT(a, a->cell[0]->count != 0, "Function 'tail' passed empty Qexpr!");    // unsafe 'tail'
+  LASSERT(a, a->cell[0]->count != 0, "Function 'tail' passed empty Qexpr! Got %i, Expected %i.", 0, 1);    // unsafe 'tail'
 
   /* Extract singleton/head */
   lval* v = lval_take(a, 0);
@@ -657,7 +669,7 @@ lval* builtin_init(lenv* e, lval* a) {
   /* accepts single Qexpr list */
   LASSERT(a, a->count == 1, "Function 'init' passed too many arguments! Got %i, Expected %i.", a->count, 1);
   lval* x = a->cell[0];
-  LASSERT(a, x->type == LVAL_QEXPR, "Function 'init' passed incorrect, non-Qexpr type!");
+  LASSERT(a, x->type == LVAL_QEXPR, "Function 'init' passed incorrect type! Got %s, Expected %s", x->type, "Q-Expression");
 
   /* Extract pointer to last element */
   /* Shift and reallocate cell */
@@ -668,7 +680,7 @@ lval* builtin_init(lenv* e, lval* a) {
 
 lval* builtin_def(lenv* e, lval* a) {
   /* Guard first cell of 'a' as List (Qexpr) */
-  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'def' passed incorrect, non-Qexpr type!");
+  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'def' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
 
   /* Get the list */
   lval* syms = a->cell[0];
@@ -679,7 +691,7 @@ lval* builtin_def(lenv* e, lval* a) {
   }
 
   /* Guard that number of syms matches number of following values */
-  LASSERT(a, syms->count == a->count - 1, "Function 'def' cannot define incorrect number of values to symbols");
+  LASSERT(a, syms->count == a->count - 1, "Function 'def' cannot define incorrect number of values to symbols. Got %i, Expected %i.", a->count - 1, syms->count);
 
   /* All clear then assign copies (done by 'lenv_put') of values to symbols */
   for (int i = 0; i < syms->count; i++) {
@@ -688,6 +700,21 @@ lval* builtin_def(lenv* e, lval* a) {
 
   /* Delete 'a' and return unit */
   lval_del(a);
+  return lval_sexpr();
+}
+
+lval* builtin_exit(lenv* e, lval* a) {
+  lval_del(a);
+  return lval_term();
+}
+
+lval* builtin_env(lenv* e, lval* a) {
+  /* Prints out all defined values in 'e' */
+  for (int i = 0; i < e->count; i++) {
+    printf("%s \t", e->syms[i]);
+    lval_print(e->vals[i]);
+    putchar('\n');
+  }
   return lval_sexpr();
 }
 
@@ -731,8 +758,9 @@ int main(int argc, char** argv) {
   lenv* e = lenv_new();
   lenv_add_builtins(e);
 
-  /* In a never-ending loop */
-  while (1) {
+  /* In a loop */
+  int is_running = 1;
+  while (is_running) {
 
     /* Output our prompt */
     // fputs("lispy> ", stdout);
@@ -749,6 +777,12 @@ int main(int argc, char** argv) {
       /* On Success -> Evaluate the AST */
       lval* x = lval_eval(e, lval_read(r.output));         // Composition
       lval_println(x);
+
+      if (x->type == LVAL_TERM) {
+        /* Signals termination by user */
+        is_running = 0;
+      }
+
       lval_del(x);
       // mpc_ast_print(r.output);
       mpc_ast_delete(r.output);
