@@ -569,7 +569,7 @@ lval* builtin_min(lenv* e, lval* a) {
 lval* builtin_head(lenv* e, lval* a) {
   /* Guards required conditions and return error if contradicts */
   LASSERT(a, a->count == 1, "Function 'head' passed too many arguments! Got %i, Expected %i.", a->count, 1);
-  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'head' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
+  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'head' passed incorrect type! Got %s, Expected %s", ltype_name(a->cell[0]->type), "Q-Expression");
   LASSERT(a, a->cell[0]->count != 0, "Function 'head' passed empty Qexpr! Got %i, Expected %i.", 0, 1);    // unsafe 'head'
 
   /* Extract singleton/head */
@@ -584,7 +584,7 @@ lval* builtin_head(lenv* e, lval* a) {
 lval* builtin_tail(lenv* e, lval* a) {
   /* Guards required conditions and return error if contradicts */
   LASSERT(a, a->count == 1, "Function 'tail' passed too many arguments! Got %i, Expected %i.", a->count, 1);
-  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'tail' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
+  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'tail' passed incorrect type! Got %s, Expected %s", ltype_name(a->cell[0]->type), "Q-Expression");
   LASSERT(a, a->cell[0]->count != 0, "Function 'tail' passed empty Qexpr! Got %i, Expected %i.", 0, 1);    // unsafe 'tail'
 
   /* Extract singleton/head */
@@ -605,7 +605,7 @@ lval* builtin_list(lenv* e, lval* a) {
 lval* builtin_eval(lenv* e, lval* a) {
   /* Guards required conditions and return error if contradicts */
   LASSERT(a, a->count == 1, "Function 'eval' passed too many arguments! Got %i, Expected %i.", a->count, 1);
-  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'eval' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
+  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'eval' passed incorrect type! Got %s, Expected %s", ltype_name(a->cell[0]->type), "Q-Expression");
   /* Evaluates empty list */
 
   lval* x = lval_take(a, 0);
@@ -659,7 +659,7 @@ lval* builtin_len(lenv* e, lval* a) {
   /* Pure function */
   LASSERT(a, a->count == 1, "Function 'len' passed too many arguments! Got %i, Expected %i.", a->count, 1);
   lval* x = a->cell[0];
-  LASSERT(a, x->type == LVAL_QEXPR, "Function 'len' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
+  LASSERT(a, x->type == LVAL_QEXPR, "Function 'len' passed incorrect type! Got %s, Expected %s", ltype_name(a->cell[0]->type), "Q-Expression");
 
   return lval_num(x->count);
 }
@@ -680,7 +680,7 @@ lval* builtin_init(lenv* e, lval* a) {
 
 lval* builtin_def(lenv* e, lval* a) {
   /* Guard first cell of 'a' as List (Qexpr) */
-  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'def' passed incorrect type! Got %s, Expected %s", a->cell[0]->type, "Q-Expression");
+  LASSERT(a, a->cell[0]->type == LVAL_QEXPR, "Function 'def' passed incorrect type! Got %s, Expected %s", ltype_name(a->cell[0]->type), "Q-Expression");
 
   /* Get the list */
   lval* syms = a->cell[0];
