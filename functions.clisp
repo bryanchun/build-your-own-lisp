@@ -1,0 +1,48 @@
+def {fun} (\ {args body} {def (head args) (\ (tail args) body)})
+; def's are side-effecting expressions
+; (head args), (tail args), body : LVAL_QEXPR
+
+fun {unpack f xs} {eval (join (list f) xs)}
+; apply (partial) argument list to formals
+; curry + {5 6 7}
+; unpack + {5 6 7}
+
+fun {pack f & xs} {f xs}
+; apply (partial) arguments to formals
+; uncurry head 5 6 7
+; pack head 5 6 7
+
+def {uncurry} pack
+def {curry} unpack
+; Point-free first-class functions, as variable binding
+
+fun {fst xs} {head xs}
+fun {snd xs} {head (tail xs)}
+fun {flip f x y} {f y x}
+fun {continuation f g & xs} {g (unpack f xs)}
+fun {id x} {x}
+fun {<< f g & xs} {f (unpack g xs)}
+; Debug
+; f . g
+
+; TODO skip newlines and comments (; ...)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Recursive Functions
+fun {len l} {if (== l {}) {0} {+ 1 (len (tail l))}}
+fun {reverse l} {if (== l {}) {{}} {join (reverse (tail l)) (head l)}}
+fun {nth n l} {if (== n 0) {head l} {nth (- n 1) (tail l)}}
+fun {safe-f f l} {if (== (len l) 0) {{}} {f l}}
+fun {safe-nth n l} {if (<= n 0) {safe-f head l} {safe-nth (- n 1) (safe-f tail l)}}
+
+fun {elem x xs} {if (== {x} (head xs)) {1} {if (== 0 (len xs)) {0} {elem x (tail xs)}}}
+; Debug
+
+fun {last xs} {if (== 1 (len xs)) {head xs} {last (tail xs)}}
+; Debug: return [a] not a
+
+fun {or & xs} {if (== 1 (head xs)) {1} {if (== 0 (len xs)) {0} {or (tail xs)}}}
+; Debug: or == 0? inf loop?
+; fun {and & xs}
+; fun (not & xs)

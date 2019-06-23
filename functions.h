@@ -127,13 +127,32 @@ lval* lval_take(lval* v, int i);
 lval* lval_join(lval* x, lval* y);
 
 lval* lval_copy(lval* v);
+int lval_eq(lval* x, lval* y);
 
 lval* lval_call(lenv* e, lval* f, lval* a);
 
 /**
  * Builtins
  * 
+ * the primitives
  */
+
+lval* builtin_lambda(lenv* e, lval* a);
+lval* builtin_fun(lenv* e, lval* a);
+lval* builtin_def(lenv* e, lval* a);
+lval* builtin_put(lenv* e, lval* a);
+lval* builtin_var(lenv* e, lval* a, char* func);
+lval* builtin_exit(lenv* e, lval* a);
+lval* builtin_env(lenv* e, lval* a);
+
+lval* builtin_head(lenv* e, lval* a);
+lval* builtin_tail(lenv* e, lval* a);
+lval* builtin_list(lenv* e, lval* a);
+lval* builtin_eval(lenv* e, lval* a);
+lval* builtin_join(lenv* e, lval* a);
+lval* builtin_cons(lenv* e, lval* a);
+lval* builtin_len(lenv* e, lval* a);
+lval* builtin_init(lenv* e, lval* a);
 
 lval* builtin(lval* a, char* func);
 lval* builtin_op(lenv* e, lval* a, char* op);
@@ -146,19 +165,14 @@ lval* builtin_exp(lenv* e, lval* a);
 lval* builtin_max(lenv* e, lval* a);
 lval* builtin_min(lenv* e, lval* a);
 
-lval* builtin_head(lenv* e, lval* a);
-lval* builtin_tail(lenv* e, lval* a);
-lval* builtin_list(lenv* e, lval* a);
-lval* builtin_eval(lenv* e, lval* a);
-lval* builtin_join(lenv* e, lval* a);
-
-lval* builtin_cons(lenv* e, lval* a);
-lval* builtin_len(lenv* e, lval* a);
-lval* builtin_init(lenv* e, lval* a);
-
-lval* builtin_lambda(lenv* e, lval* a);
-lval* builtin_def(lenv* e, lval* a);
-lval* builtin_put(lenv* e, lval* a);
-lval* builtin_var(lenv* e, lval* a, char* func);
-lval* builtin_exit(lenv* e, lval* a);
-lval* builtin_env(lenv* e, lval* a);
+lval* builtin_if(lenv* e, lval* a);
+lval* builtin_ord(lenv* e, lval* a, char* op);
+lval* builtin_gt(lenv* e, lval* a);
+lval* builtin_lt(lenv* e, lval* a);
+lval* builtin_ge(lenv* e, lval* a);
+lval* builtin_le(lenv* e, lval* a);
+lval* builtin_cmp(lenv* e, lval* a, char* op);
+lval* builtin_eq(lenv* e, lval* a);
+lval* builtin_ne(lenv* e, lval* a);
+// TODO: ||, &&, !
+// TODO: true, false builtin const
